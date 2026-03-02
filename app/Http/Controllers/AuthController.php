@@ -35,10 +35,10 @@ class AuthController extends Controller
     }
 
     // Track last login
-    DB::table('users')->where('id', $user->id)->update([
-        'last_login_at' => now(),
-        'updated_at'    => now(),
-    ]);
+    // DB::table('users')->where('id', $user->id)->update([
+    //     'last_login_at' => now(),
+    //     'updated_at'    => now(),
+    // ]);
 
     return redirect()->route('artist.profile');
 }

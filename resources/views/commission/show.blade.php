@@ -170,10 +170,19 @@
                 <div class="p-4 flex gap-2 overflow-x-auto">
                     @foreach($commission->media as $i => $media)
                     @if($media->file_type === 'video')
+                    {{-- JADI ini --}}
                     <div @click="activeMedia = {{ $i }}"
-                        class="media-thumb flex-shrink-0 flex items-center justify-center bg-gray-800 rounded-xl cursor-pointer"
+                        class="media-thumb flex-shrink-0 rounded-xl cursor-pointer"
+                        style="position:relative;overflow:hidden;background:#1a1a2e;"
                         :class="activeMedia === {{ $i }} ? 'active' : ''">
-                        <i data-lucide="play-circle" class="w-6 h-6 text-white"></i>
+                        <video src="{{ Storage::url($media->file_path) }}"
+                            style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;"
+                            preload="metadata" muted playsinline
+                            onloadedmetadata="this.currentTime=1">
+                        </video>
+                        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.3);">
+                            <i data-lucide="play-circle" style="width:18px;height:18px;color:white;"></i>
+                        </div>
                     </div>
                     @else
                     <img src="{{ Storage::url($media->file_path) }}"
@@ -282,6 +291,13 @@
 
             {{-- Tombol Order --}}
             @if($commission->status === 'open' && !$isArtist)
+
+            @if($commission->used_slots >= $commission->max_slots)
+            <div class="p-3 rounded-xl text-xs text-center font-bold"
+                style="background:rgba(239,68,68,0.1);color:#ef4444;">
+                ● Slot sudah penuh
+            </div>
+            @else
             <button @click="goOrder({{ $commission->id }})"
                 :disabled="!selectedTier || !selectedPayment"
                 class="w-full py-3 rounded-xl font-bold text-sm transition-all"
@@ -290,6 +306,7 @@
                     : 'bg-gray-400 text-white cursor-not-allowed opacity-60'">
                 Order Sekarang
             </button>
+            @endif
 
             <p class="text-xs text-center" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
                 <i data-lucide="info" class="w-3 h-3 inline mr-1"></i>

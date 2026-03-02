@@ -107,10 +107,20 @@
             <div class="thumb-strip mb-4">
                 @foreach($portfolio->media as $mi => $m)
                 @if($m->file_type === 'video')
+                {{-- JADI ini --}}
                 <div class="thumb-video {{ $mi === 0 ? 'active' : '' }}"
                     id="thumb-{{ $mi }}"
-                    onclick="switchMedia({{ $mi }}, {{ $portfolio->media->count() }})">
-                    <i data-lucide="play-circle" style="width:24px;height:24px;color:#f97316;"></i>
+                    onclick="switchMedia({{ $mi }}, {{ $portfolio->media->count() }})"
+                    style="position:relative;overflow:hidden;">
+                    <video src="{{ Storage::url($m->file_path) }}"
+                        class="w-full h-full object-cover"
+                        preload="metadata" muted playsinline
+                        style="position:absolute;inset:0;pointer-events:none;"
+                        onloadedmetadata="this.currentTime=1">
+                    </video>
+                    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.3);">
+                        <i data-lucide="play-circle" style="width:20px;height:20px;color:white;"></i>
+                    </div>
                 </div>
                 @else
                 <img src="{{ Storage::url($m->file_path) }}"
@@ -221,8 +231,17 @@
             <a href="{{ route('portfolio.show', $r->id) }}" class="related-card">
                 @if($r->cover)
                     @if($r->cover->file_type === 'video')
-                    <div class="w-full h-36 bg-gray-800 flex items-center justify-center">
-                        <i data-lucide="play-circle" class="w-8 h-8 text-orange-500"></i>
+                    {{-- JADI ini --}}
+                    <div class="w-full h-36 relative overflow-hidden bg-gray-800">
+                        <video src="{{ Storage::url($r->cover->file_path) }}"
+                            class="w-full h-full object-cover"
+                            preload="metadata" muted playsinline
+                            style="pointer-events:none;"
+                            onloadedmetadata="this.currentTime=1">
+                        </video>
+                        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.3);">
+                            <i data-lucide="play-circle" style="width:28px;height:28px;color:white;"></i>
+                        </div>
                     </div>
                     @else
                     <img src="{{ Storage::url($r->cover->file_path) }}"

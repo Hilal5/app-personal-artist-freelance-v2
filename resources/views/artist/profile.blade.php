@@ -266,10 +266,22 @@
                     @foreach($portfolios as $p)
                     <a href="{{ route('portfolio.show', $p->id) }}" class="portfolio-thumb">
                         @if($p->cover)
-                            @if($p->cover->file_type === 'video')
-                            <div class="w-full h-full bg-gray-800 flex items-center justify-center" style="min-height:100px;">
-                                <i data-lucide="play-circle" class="w-8 h-8 text-orange-500"></i>
+                        @if($p->cover->file_type === 'video')
+                        <div class="w-full h-full relative" style="min-height:100px;">
+                            <video 
+                                src="{{ Storage::url($p->cover->file_path) }}"
+                                class="w-full h-full object-cover"
+                                preload="metadata"
+                                muted
+                                playsinline
+                                style="pointer-events:none;"
+                                onloadedmetadata="this.currentTime=1">
+                            </video>
+                            {{-- Play overlay --}}
+                            <div class="absolute inset-0 flex items-center justify-center bg-black/30">
+                                <i data-lucide="play-circle" class="w-8 h-8 text-white"></i>
                             </div>
+                        </div>
                             @else
                             <img src="{{ Storage::url($p->cover->file_path) }}" alt="{{ $p->title }}" loading="lazy">
                             @endif

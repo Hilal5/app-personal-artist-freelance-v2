@@ -135,7 +135,6 @@ class OrderController extends Controller
         return response()->json(['success' => true, 'status' => 'waiting_payment']);
     }
 
-    // ===== ARTIST: Konfirmasi pembayaran =====
     public function confirmPayment($id)
     {
         if (session('user_role') !== 'artist') {
