@@ -9,34 +9,47 @@ use Illuminate\Support\Facades\Hash;
 class AuthController extends Controller
 {
     public function login(Request $request)
-    {
-        $request->validate([
-            'email'    => 'required|email',
-            'password' => 'required',
-        ]);
+{
+    $request->validate([
+        'email'    => 'required|email',
+        'password' => 'required',
+    ]);
 
-        $user = DB::table('users')->where('email', $request->email)->first();
+    $user = DB::table('users')->where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return redirect()->back()
-                ->with('login_error', 'Email atau password salah.')
-                ->with('show_login_modal', true);
-        }
-
-        session([
-            'user_id'   => $user->id,
-            'user_name' => $user->name,
-            'user_role' => $user->role,
-        ]);
-
-        return redirect()->route('artist.profile');
+    if (!$user || !Hash::check($request->password, $user->password)) {
+        return redirect()->back()
+            ->with('login_error', 'Email atau password salah.')
+            ->with('show_login_modal', true);
     }
 
-    public function logout()
-    {
-        session()->flush();
-        return redirect()->route('artist.profile');
+    session([
+        'user_id'   => $user->id,
+        'user_name' => $user->name,
+        'user_role' => $user->role,
+    ]);
+
+    // Remember Me — simpan cookie 30 hari
+    if ($request->boolean('remember')) {
+        cookie()->queue('remember_user', encrypt($user->id), 60 * 24 * 30);
     }
+
+    // Track last login
+    DB::table('users')->where('id', $user->id)->update([
+        'last_login_at' => now(),
+        'updated_at'    => now(),
+    ]);
+
+    return redirect()->route('artist.profile');
+}
+
+public function logout()
+{
+    // Hapus remember cookie
+    cookie()->queue(cookie()->forget('remember_user'));
+    session()->flush();
+    return redirect()->route('artist.profile');
+}
 
     public function register(Request $request)
 {

@@ -562,6 +562,16 @@
                         </div>
                     </div>
 
+                    {{-- Remember Me --}}
+                    <div class="flex items-center gap-2 mb-5">
+                        <input type="checkbox" name="remember" id="rememberMe"
+                            class="w-4 h-4 rounded accent-orange-500 cursor-pointer">
+                        <label for="rememberMe" class="text-xs cursor-pointer"
+                            :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+                            Ingat saya selama 30 hari
+                        </label>
+                    </div>
+
                     <button type="submit"
                         class="w-full py-2.5 rounded-xl bg-orange-500 text-white font-bold text-sm hover:bg-orange-600 transition-all flex items-center justify-center gap-2">
                         <i data-lucide="log-in" class="w-4 h-4"></i> Login
@@ -670,32 +680,37 @@
                 authTab: '{{ $errors->any() ? "register" : "login" }}',
                 
                 init() {
-                    // Load theme dari localStorage
-                    const savedTheme = localStorage.getItem('theme');
-                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                    
-                    this.isDark = savedTheme ? savedTheme === 'dark' : prefersDark;
-                    
-                    // Terapkan theme ke HTML
-                    document.documentElement.classList.toggle('dark', this.isDark);
-                    
-                    // Terapkan background ke body
-                    this.applyBodyBackground();
-                    
-                    // Observer untuk mendeteksi perubahan class di HTML
-                    const observer = new MutationObserver(() => {
-                        const newIsDark = document.documentElement.classList.contains('dark');
-                        if (this.isDark !== newIsDark) {
-                            this.isDark = newIsDark;
-                            this.applyBodyBackground();
-                        }
-                    });
-                    
-                    observer.observe(document.documentElement, { 
-                        attributes: true, 
-                        attributeFilter: ['class'] 
-                    });
-                },
+                // Prioritas: localStorage > cookie > system preference
+                const savedTheme  = localStorage.getItem('theme');
+                const cookieTheme = document.cookie.split('; ')
+                    .find(r => r.startsWith('theme='))?.split('=')[1];
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+                this.isDark = savedTheme
+                    ? savedTheme === 'dark'
+                    : cookieTheme
+                        ? cookieTheme === 'dark'
+                        : prefersDark;
+
+                // Sync keduanya
+                localStorage.setItem('theme', this.isDark ? 'dark' : 'light');
+
+                document.documentElement.classList.toggle('dark', this.isDark);
+                this.applyBodyBackground();
+
+                // Observer
+                const observer = new MutationObserver(() => {
+                    const newIsDark = document.documentElement.classList.contains('dark');
+                    if (this.isDark !== newIsDark) {
+                        this.isDark = newIsDark;
+                        this.applyBodyBackground();
+                    }
+                });
+                observer.observe(document.documentElement, {
+                    attributes: true,
+                    attributeFilter: ['class']
+                });
+            },
                 
                 applyBodyBackground() {
                     // Langsung apply background ke body
@@ -710,11 +725,20 @@
                 
                 toggleTheme() {
                     this.isDark = !this.isDark;
-                    localStorage.setItem('theme', this.isDark ? 'dark' : 'light');
+                    const theme = this.isDark ? 'dark' : 'light';
+
+                    // Simpan ke localStorage
+                    localStorage.setItem('theme', theme);
+
+                    // Simpan ke cookie sebagai backup (365 hari)
+                    const expires = new Date();
+                    expires.setFullYear(expires.getFullYear() + 1);
+                    document.cookie = `theme=${theme}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
+
                     document.documentElement.classList.toggle('dark', this.isDark);
-                    this.applyBodyBackground(); // Panggil fungsi untuk update body
+                    this.applyBodyBackground();
                 },
-                
+                                
                 toggleMob() {
                     this.mobOpen = !this.mobOpen;
                     const mobMenu = document.getElementById('mob-menu');
