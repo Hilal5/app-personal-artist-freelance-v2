@@ -353,6 +353,83 @@
                     <i data-lucide="help-circle" class="w-4 h-4"></i>FAQ
                 </a>
 
+                {{-- NOTIFICATION BELL (login only) --}}
+            @if(session('user_id'))
+            <div class="relative" x-data="notifApp()" x-init="init()">
+                <button @click="toggle()"
+                    class="w-9 h-9 rounded-lg flex items-center justify-center relative transition-all"
+                    :class="isDark
+                        ? 'bg-[#2a2a3d] text-gray-300 hover:bg-[#3a3a50]'
+                        : 'bg-gray-100 text-[#21212e] hover:bg-gray-200'">
+                    <i data-lucide="bell" class="w-4 h-4"></i>
+                    <span x-show="unread > 0"
+                        x-text="unread > 9 ? '9+' : unread"
+                        class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1"
+                        style="font-size:0.6rem;">
+                    </span>
+                </button>
+
+                {{-- Dropdown --}}
+                <div x-show="open" @click.away="open = false"
+                    class="absolute right-0 mt-2 w-80 rounded-2xl border z-50 overflow-hidden"
+                    :class="isDark ? 'bg-[#2a2a3d] border-[#3a3a50]' : 'bg-white border-gray-200'"
+                    style="box-shadow:0 20px 40px rgba(0,0,0,0.15);">
+
+                    {{-- Header --}}
+                    <div class="flex items-center justify-between px-4 py-3 border-b"
+                        :class="isDark ? 'border-[#3a3a50]' : 'border-gray-100'">
+                        <span class="font-bold text-sm" :class="isDark ? 'text-white' : 'text-[#21212e]'">
+                            Notifikasi
+                            <span x-show="unread > 0"
+                                class="ml-1 text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full"
+                                x-text="unread"></span>
+                        </span>
+                        <button x-show="unread > 0" @click="markAllRead()"
+                            class="text-xs text-orange-500 font-bold hover:underline">
+                            Tandai semua dibaca
+                        </button>
+                    </div>
+
+                    {{-- List --}}
+                    <div class="overflow-y-auto" style="max-height:360px;">
+                        <template x-if="notifications.length === 0">
+                            <div class="flex flex-col items-center justify-center py-10">
+                                <i data-lucide="bell-off" class="w-8 h-8 text-gray-400 mb-2"></i>
+                                <p class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Belum ada notifikasi</p>
+                            </div>
+                        </template>
+
+                        <template x-for="n in notifications" :key="n.id">
+                            <a :href="'/notifications/' + n.id + '/read'"
+                                class="flex items-start gap-3 px-4 py-3 border-b transition-all cursor-pointer"
+                                :class="[
+                                    isDark ? 'border-[#3a3a50] hover:bg-[#21212e]' : 'border-gray-50 hover:bg-gray-50',
+                                    !n.is_read ? (isDark ? 'bg-[#21212e]/60' : 'bg-orange-50/60') : ''
+                                ]">
+                                {{-- Icon --}}
+                                <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
+                                    :style="getIconStyle(n.type)">
+                                    <span x-html="getIcon(n.type)" style="font-size:14px;"></span>
+                                </div>
+                                {{-- Content --}}
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-xs font-bold truncate" :class="isDark ? 'text-white' : 'text-[#21212e]'"
+                                        x-text="n.title"></p>
+                                    <p class="text-xs mt-0.5 leading-relaxed line-clamp-2"
+                                        :class="isDark ? 'text-gray-400' : 'text-gray-500'"
+                                        x-html="n.message"></p>
+                                    <p class="text-xs mt-1 text-orange-500 font-bold" x-text="n.time_ago"></p>
+                                </div>
+                                {{-- Unread dot --}}
+                                <div x-show="!n.is_read"
+                                    class="w-2 h-2 rounded-full bg-orange-500 shrink-0 mt-1.5"></div>
+                            </a>
+                        </template>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             </nav>
 
             {{-- RIGHT: THEME + LOGIN/AVATAR + HAMBURGER --}}
@@ -370,56 +447,56 @@
                 </button>
 
                 {{-- Sudah login: tampilkan avatar --}}
-@if(session('user_id'))
-<div class="relative" x-data="{ open: false }" @click.away="open = false">
-    <button @click="open = !open" class="flex items-center gap-2 focus:outline-none">
-        {{-- Profile foto --}}
-        <img src="https://ui-avatars.com/api/?name={{ urlencode(session('user_name') ?? 'User') }}&background=f97316&color=fff"
-             class="w-9 h-9 rounded-full object-cover ring-2 ring-orange-500"
-             alt="{{ session('user_name') ?? 'User' }}">
-        
-        {{-- Dropdown arrow --}}
-        <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200" 
-           :class="open ? 'rotate-180' : ''"
-           :class="isDark ? 'text-gray-400' : 'text-gray-500'"></i>
-    </button>
-    
-    {{-- Dropdown menu --}}
-    <div class="dd-menu" 
-         style="left: auto; right: 0; transform: none; min-width: 180px;"
-         :class="open ? 'open' : ''">
-        
-        {{-- User info --}}
-        <div class="px-3 py-2 border-b" :class="isDark ? 'border-[#3a3a50]' : 'border-gray-100'">
-            <p class="text-xs font-bold truncate" :class="isDark ? 'text-white' : 'text-[#21212e]'">
-                {{ session('user_name') ?? 'User' }}
-            </p>
-            <p class="text-xs capitalize mt-0.5" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-                {{ session('user_role') ?? 'guest' }}
-            </p>
-        </div>
-        
-        {{-- Logout button --}}
-        <form method="POST" action="{{ route('logout.post') }}" class="p-1">
-            @csrf
-            <button type="submit" 
-                    class="dd-item w-full flex items-center gap-2 px-3 py-2 text-sm"
-                    :class="isDark ? 'text-red-400 hover:text-white hover:bg-red-500' : 'text-red-500 hover:text-white hover:bg-red-500'">
-                <i data-lucide="log-out" class="w-4 h-4"></i>
-                <span>Logout</span>
-            </button>
-        </form>
-    </div>
-</div>
+                @if(session('user_id'))
+                <div class="relative" x-data="{ open: false }" @click.away="open = false">
+                    <button @click="open = !open" class="flex items-center gap-2 focus:outline-none">
+                        {{-- Profile foto --}}
+                        <img src="https://ui-avatars.com/api/?name={{ urlencode(session('user_name') ?? 'User') }}&background=f97316&color=fff"
+                            class="w-9 h-9 rounded-full object-cover ring-2 ring-orange-500"
+                            alt="{{ session('user_name') ?? 'User' }}">
+                        
+                        {{-- Dropdown arrow --}}
+                        <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200" 
+                        :class="open ? 'rotate-180' : ''"
+                        :class="isDark ? 'text-gray-400' : 'text-gray-500'"></i>
+                    </button>
+                    
+                    {{-- Dropdown menu --}}
+                    <div class="dd-menu" 
+                        style="left: auto; right: 0; transform: none; min-width: 180px;"
+                        :class="open ? 'open' : ''">
+                        
+                        {{-- User info --}}
+                        <div class="px-3 py-2 border-b" :class="isDark ? 'border-[#3a3a50]' : 'border-gray-100'">
+                            <p class="text-xs font-bold truncate" :class="isDark ? 'text-white' : 'text-[#21212e]'">
+                                {{ session('user_name') ?? 'User' }}
+                            </p>
+                            <p class="text-xs capitalize mt-0.5" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+                                {{ session('user_role') ?? 'guest' }}
+                            </p>
+                        </div>
+                        
+                        {{-- Logout button --}}
+                        <form method="POST" action="{{ route('logout.post') }}" class="p-1">
+                            @csrf
+                            <button type="submit" 
+                                    class="dd-item w-full flex items-center gap-2 px-3 py-2 text-sm"
+                                    :class="isDark ? 'text-red-400 hover:text-white hover:bg-red-500' : 'text-red-500 hover:text-white hover:bg-red-500'">
+                                <i data-lucide="log-out" class="w-4 h-4"></i>
+                                <span>Logout</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
 
-{{-- Belum login: tampilkan tombol Login --}}
-@else
-<button @click="openLogin = true"
-    class="nav-link bg-orange-500 text-white hover:bg-orange-600 flex items-center gap-2">
-    <i data-lucide="log-in" class="w-4 h-4"></i>
-    <span>Login</span>
-</button>
-@endif
+                {{-- Belum login: tampilkan tombol Login --}}
+                @else
+                <button @click="openLogin = true"
+                    class="nav-link bg-orange-500 text-white hover:bg-orange-600 flex items-center gap-2">
+                    <i data-lucide="log-in" class="w-4 h-4"></i>
+                    <span>Login</span>
+                </button>
+                @endif
 
                 {{-- Hamburger --}}
                 <button @click="toggleMob()"
@@ -477,6 +554,79 @@
                 <a href="{{ route('faq.index') }}" class="nav-link" :class="isDark ? 'text-white' : 'text-[#21212e]'">
                     <i data-lucide="help-circle" class="w-4 h-4"></i>FAQ
                 </a>
+
+                {{-- NOTIFIKASI MOBILE (login only) --}}
+                @if(session('user_id'))
+                <div x-data="notifApp()" x-init="init()" class="mt-1">
+                    
+                    {{-- Toggle button --}}
+                    <button @click="toggle()"
+                        class="nav-link w-full flex items-center justify-between"
+                        :class="isDark ? 'text-white' : 'text-[#21212e]'">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="bell" class="w-4 h-4"></i>
+                            <span>Notifikasi</span>
+                        </div>
+                        <span x-show="unread > 0"
+                            x-text="unread > 9 ? '9+' : unread"
+                            class="bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5"
+                            style="font-size:0.6rem;">
+                        </span>
+                    </button>
+
+                    {{-- Panel notifikasi --}}
+                    <div x-show="open" class="mt-1 rounded-2xl border overflow-hidden"
+                        :class="isDark ? 'bg-[#2a2a3d] border-[#3a3a50]' : 'bg-white border-gray-200'">
+
+                        {{-- Header --}}
+                        <div class="flex items-center justify-between px-4 py-3 border-b"
+                            :class="isDark ? 'border-[#3a3a50]' : 'border-gray-100'">
+                            <span class="font-bold text-xs" :class="isDark ? 'text-white' : 'text-[#21212e]'">
+                                Notifikasi
+                            </span>
+                            <button x-show="unread > 0" @click="markAllRead()"
+                                class="text-xs text-orange-500 font-bold hover:underline">
+                                Tandai semua dibaca
+                            </button>
+                        </div>
+
+                        {{-- List --}}
+                        <div class="overflow-y-auto" style="max-height:280px;">
+                            <template x-if="notifications.length === 0">
+                                <div class="flex flex-col items-center justify-center py-8">
+                                    <i data-lucide="bell-off" class="w-6 h-6 text-gray-400 mb-2"></i>
+                                    <p class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Belum ada notifikasi</p>
+                                </div>
+                            </template>
+
+                            <template x-for="n in notifications" :key="n.id">
+                                <a :href="'/notifications/' + n.id + '/read'"
+                                    class="flex items-start gap-3 px-4 py-3 border-b transition-all"
+                                    :class="[
+                                        isDark ? 'border-[#3a3a50] hover:bg-[#21212e]' : 'border-gray-50 hover:bg-gray-50',
+                                        !n.is_read ? (isDark ? 'bg-[#21212e]/60' : 'bg-orange-50/60') : ''
+                                    ]">
+                                    <div class="w-7 h-7 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
+                                        :style="getIconStyle(n.type)">
+                                        <span x-html="getIcon(n.type)" style="font-size:12px;"></span>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-xs font-bold truncate" :class="isDark ? 'text-white' : 'text-[#21212e]'"
+                                            x-text="n.title"></p>
+                                        <p class="text-xs mt-0.5 leading-relaxed line-clamp-2"
+                                            :class="isDark ? 'text-gray-400' : 'text-gray-500'"
+                                            x-html="n.message"></p>
+                                        <p class="text-xs mt-1 text-orange-500 font-bold" x-text="n.time_ago"></p>
+                                    </div>
+                                    <div x-show="!n.is_read"
+                                        class="w-2 h-2 rounded-full bg-orange-500 shrink-0 mt-1.5"></div>
+                                </a>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
             </nav>
         </div>
 
@@ -775,6 +925,75 @@
                 document.body.style.backgroundColor = '#f9fafb';
                 document.body.style.color = '#21212e';
             }
-        });
+        });function notifApp() {
+    return {
+        open: false,
+        unread: 0,
+        notifications: [],
+        isDark: document.documentElement.classList.contains('dark'),
+
+        async init() {
+            await this.fetch();
+            // Polling setiap 30 detik
+            setInterval(() => this.fetch(), 30000);
+
+            new MutationObserver(() => {
+                this.isDark = document.documentElement.classList.contains('dark');
+            }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        },
+
+        async fetch() {
+            try {
+                const res  = await window.fetch('/notifications');
+                const data = await res.json();
+                this.notifications = data.notifications;
+                this.unread        = data.unread;
+                this.$nextTick(() => lucide.createIcons());
+            } catch (e) {}
+        },
+
+        async toggle() {
+            this.open = !this.open;
+            if (this.open) {
+                this.$nextTick(() => lucide.createIcons());
+            }
+        },
+
+        async markAllRead() {
+            await window.fetch('/notifications/read-all', {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content }
+            });
+            this.notifications.forEach(n => n.is_read = true);
+            this.unread = 0;
+        },
+
+        getIcon(type) {
+            const icons = {
+                order_new:       '🛎️',
+                order_confirmed: '✅',
+                order_rejected:  '❌',
+                order_payment:   '💳',
+                payment_uploaded:'📤',
+                order_completed: '🎉',
+            };
+            return icons[type] || '🔔';
+        },
+
+        getIconStyle(type) {
+            const styles = {
+                order_new:       'background:rgba(249,115,22,0.15)',
+                order_confirmed: 'background:rgba(34,197,94,0.15)',
+                order_rejected:  'background:rgba(239,68,68,0.15)',
+                order_payment:   'background:rgba(168,85,247,0.15)',
+                payment_uploaded:'background:rgba(59,130,246,0.15)',
+                order_completed: 'background:rgba(34,197,94,0.15)',
+            };
+            return styles[type] || 'background:rgba(156,163,175,0.15)';
+        }
+    }
+}
+
+
     </script>
 </header>

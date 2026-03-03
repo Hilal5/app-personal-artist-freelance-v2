@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ArtistController;
 use App\Http\Controllers\PortfolioController;
@@ -87,3 +88,7 @@ Route::get('/forgot-password', [AuthController::class, 'forgotForm'])->name('pas
 Route::post('/forgot-password', [AuthController::class, 'forgotSend'])->name('password.email');
 Route::get('/reset-password/{token}', [AuthController::class, 'resetForm'])->name('password.reset');
 Route::post('/reset-password', [AuthController::class, 'resetUpdate'])->name('password.update');
+
+Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.readAll');
+Route::get('/notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');

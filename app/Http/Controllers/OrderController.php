@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -95,6 +96,19 @@ class OrderController extends Controller
             'updated_at'   => now(),
         ]);
 
+        $order = DB::table('orders')
+            ->join('commissions', 'orders.commission_id', '=', 'commissions.id')
+            ->select('orders.*', 'commissions.title as commission_title')
+            ->where('orders.id', $id)->first();
+
+        NotificationService::send(
+            $order->client_id,
+            'order_confirmed',
+            'Order Dikonfirmasi!',
+            'Order kamu untuk commission <strong>' . $order->commission_title . '</strong> telah dikonfirmasi oleh artist. Proses pengerjaan sedang dimulai.',
+            '/orders/client'
+        );
+
         return response()->json(['success' => true, 'status' => 'confirmed']);
     }
 
@@ -117,6 +131,19 @@ class OrderController extends Controller
             ->where('id', $order->commission_id)
             ->decrement('used_slots');
 
+        $order = DB::table('orders')
+            ->join('commissions', 'orders.commission_id', '=', 'commissions.id')
+            ->select('orders.*', 'commissions.title as commission_title')
+            ->where('orders.id', $id)->first();
+
+        NotificationService::send(
+            $order->client_id,
+            'order_rejected',
+            'Order Ditolak',
+            'Maaf, order kamu untuk commission <strong>' . $order->commission_title . '</strong> tidak dapat diproses.' . ($request->reason ? ' Alasan: ' . $request->reason : ''),
+            '/orders/client'
+        );
+
         return response()->json(['success' => true, 'status' => 'rejected']);
     }
 
@@ -132,33 +159,61 @@ class OrderController extends Controller
             'updated_at' => now(),
         ]);
 
+        $order = DB::table('orders')
+            ->join('commissions', 'orders.commission_id', '=', 'commissions.id')
+            ->select('orders.*', 'commissions.title as commission_title')
+            ->where('orders.id', $id)->first();
+
+        NotificationService::send(
+            $order->client_id,
+            'order_payment',
+            'Saatnya Melakukan Pembayaran!',
+            'Commission <strong>' . $order->commission_title . '</strong> telah selesai dikerjakan! Silakan lakukan pembayaran sebesar <strong>Rp' . number_format($order->final_price, 0, ',', '.') . '</strong> dan upload bukti transfer.',
+            '/orders/client'
+        );
+
         return response()->json(['success' => true, 'status' => 'waiting_payment']);
     }
 
     public function confirmPayment($id)
-    {
-        if (session('user_role') !== 'artist') {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
-
-        DB::table('orders')->where('id', $id)->update([
-            'status'       => 'completed',
-            'completed_at' => now(),
-            'updated_at'   => now(),
-        ]);
-
-        DB::table('order_payments')
-            ->where('order_id', $id)
-            ->update(['status' => 'confirmed', 'updated_at' => now()]);
-
-        // Kurangi used_slots
-        $order = DB::table('orders')->where('id', $id)->first();
-        DB::table('commissions')
-            ->where('id', $order->commission_id)
-            ->decrement('used_slots');
-
-        return response()->json(['success' => true, 'status' => 'completed']);
+{
+    if (session('user_role') !== 'artist') {
+        return response()->json(['error' => 'Unauthorized'], 401);
     }
+
+    // Ambil DULU sebelum update, dengan join supaya ada commission_title
+    $order = DB::table('orders')
+        ->join('commissions', 'orders.commission_id', '=', 'commissions.id')
+        ->select('orders.*', 'commissions.title as commission_title')
+        ->where('orders.id', $id)
+        ->first();
+
+    if (!$order) {
+        return response()->json(['error' => 'Order tidak ditemukan'], 404);
+    }
+
+    DB::table('orders')->where('id', $id)->update([
+        'status'       => 'completed',
+        'completed_at' => now(),
+        'updated_at'   => now(),
+    ]);
+
+    DB::table('order_payments')
+        ->where('order_id', $id)
+        ->update(['status' => 'confirmed', 'updated_at' => now()]);
+
+    // ✅ Tidak ada decrement di sini
+
+    NotificationService::send(
+        $order->client_id,
+        'order_completed',
+        'Order Selesai! 🎉',
+        'Pembayaran untuk commission <strong>' . $order->commission_title . '</strong> telah dikonfirmasi. Order kamu resmi selesai! Jangan lupa berikan review untuk artist.',
+        '/orders/client'
+    );
+
+    return response()->json(['success' => true, 'status' => 'completed']);
+}
 
     // ===== CLIENT: Batalkan order =====
     public function cancel(Request $request, $id)
@@ -229,6 +284,20 @@ class OrderController extends Controller
             'status'     => 'paid',
             'updated_at' => now(),
         ]);
+
+        $artist = DB::table('users')->where('role', 'artist')->first();
+        $orderWithCommission = DB::table('orders')
+            ->join('commissions', 'orders.commission_id', '=', 'commissions.id')
+            ->select('orders.*', 'commissions.title as commission_title')
+            ->where('orders.id', $id)->first();
+
+        NotificationService::send(
+            $artist->id,
+            'payment_uploaded',
+            'Bukti Pembayaran Diterima!',
+            'Client <strong>' . session('user_name') . '</strong> telah mengupload bukti pembayaran untuk commission <strong>' . $orderWithCommission->commission_title . '</strong>. Segera verifikasi pembayaran.',
+            '/orders/artist?status=paid'
+        );
 
         return response()->json(['success' => true]);
     }

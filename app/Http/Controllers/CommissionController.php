@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\Storage;
 
 class CommissionController extends Controller
@@ -111,6 +112,14 @@ class CommissionController extends Controller
             'created_at'     => now(),
             'updated_at'     => now(),
         ]);
+
+        NotificationService::send(
+            $artist->id,
+            'order_new',
+            'Order Baru Masuk!',
+            'Ada order baru dari <strong>' . session('user_name') . '</strong> untuk commission <strong>' . $commission->title . '</strong> (Tier: ' . ucfirst($request->tier) . '). Segera cek dan konfirmasi.',
+            '/orders/artist'
+        );
 
         // Update used_slots
         DB::table('commissions')
