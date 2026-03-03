@@ -562,6 +562,13 @@
                         </div>
                     </div>
 
+                    <div class="flex justify-end mb-5">
+                        <a href="{{ route('password.request') }}"
+                            class="text-xs text-orange-500 font-bold hover:underline">
+                            Lupa password?
+                        </a>
+                    </div>
+
                     {{-- Remember Me --}}
                     <div class="flex items-center gap-2 mb-5">
                         <input type="checkbox" name="remember" id="rememberMe"
@@ -571,6 +578,8 @@
                             Ingat saya selama 30 hari
                         </label>
                     </div>
+
+
 
                     <button type="submit"
                         class="w-full py-2.5 rounded-xl bg-orange-500 text-white font-bold text-sm hover:bg-orange-600 transition-all flex items-center justify-center gap-2">

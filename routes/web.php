@@ -82,3 +82,8 @@ Route::post('/faq',                 [FaqController::class, 'store'])->name('faq.
 Route::post('/faq/{id}/update',     [FaqController::class, 'update'])->name('faq.update');
 Route::post('/faq/{id}/toggle',     [FaqController::class, 'toggle'])->name('faq.toggle');
 Route::post('/faq/{id}/delete',     [FaqController::class, 'destroy'])->name('faq.delete');
+
+Route::get('/forgot-password', [AuthController::class, 'forgotForm'])->name('password.request');
+Route::post('/forgot-password', [AuthController::class, 'forgotSend'])->name('password.email');
+Route::get('/reset-password/{token}', [AuthController::class, 'resetForm'])->name('password.reset');
+Route::post('/reset-password', [AuthController::class, 'resetUpdate'])->name('password.update');
