@@ -17,7 +17,7 @@
     </script>
 
     <style>
-        * { font-family: "Nunito", sans-serif !important; }
+        * { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #f97316; border-radius: 99px; }
     </style>
