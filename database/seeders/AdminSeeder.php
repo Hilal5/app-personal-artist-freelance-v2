@@ -3,6 +3,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -11,15 +12,24 @@ class AdminSeeder extends Seeder
 {
     public function run(): void
     {
+        User::firstOrCreate(
+            ['email' => 'admin@artspace.com'],
+            [
+                'name'     => 'Admin Artist',
+                'password' => Hash::make('password'),
+                'role'     => 'artist',
+            ]
+        );
+
         // Data Admin (artist)
-        DB::table('users')->insert([
-            'name'       => 'Admin Artist',
-            'email'      => 'admin@artspace.com',
-            'password'   => Hash::make('password'),
-            'role'       => 'artist',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        // DB::table('users')->insert([
+        //     'name'       => 'Admin Artist',
+        //     'email'      => 'admin@artspace.com',
+        //     'password'   => Hash::make('password'),
+        //     'role'       => 'artist',
+        //     'created_at' => now(),
+        //     'updated_at' => now(),
+        // ]);
 
         // Data Clients (multiple)
         // $clients = [
