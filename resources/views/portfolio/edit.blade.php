@@ -78,11 +78,58 @@
                             <option value="draft" {{ old('status', $portfolio->status) === 'draft' ? 'selected' : '' }}>Draft</option>
                         </select>
                     </div>
-                    <div>
+                    <div class="md:col-span-2">
                         <label class="form-label" :class="isDark ? 'text-gray-300' : 'text-[#21212e]'">Tags</label>
-                        <input type="text" name="tags"
-                            value="{{ old('tags', $portfolio->tags->implode(', ')) }}"
-                            placeholder="anime, oc, fantasy" class="form-input">
+                        <div x-data="tagInput('{{ old('tags', $portfolio->tags->implode(', ')) }}')">
+
+                            <div class="flex flex-wrap gap-1.5 p-2 rounded-xl border min-h-[44px] cursor-text transition-all"
+                                :class="[
+                                    isDark ? 'bg-[#21212e] border-[#3a3a50]' : 'bg-gray-50 border-gray-200',
+                                    focused ? (isDark ? 'border-orange-500' : 'border-[#21212e]') : ''
+                                ]"
+                                @click="$refs.tagInput.focus()">
+
+                                <template x-for="(tag, i) in tags" :key="i">
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold"
+                                        style="background:rgba(249,115,22,0.15);color:#f97316;">
+                                        <span x-text="tag"></span>
+                                        <button type="button" @click.stop="removeTag(i)"
+                                            class="w-3.5 h-3.5 rounded-full flex items-center justify-center hover:bg-orange-500 hover:text-white transition-all"
+                                            style="color:#f97316;">✕</button>
+                                    </span>
+                                </template>
+
+                                <input type="text"
+                                    x-ref="tagInput"
+                                    x-model="inputVal"
+                                    @keydown.enter.prevent="addTag()"
+                                    @keydown.comma.prevent="addTag()"
+                                    @keydown.backspace="inputVal === '' ? removeTag(tags.length - 1) : null"
+                                    @focus="focused = true"
+                                    @blur="focused = false; addTag()"
+                                    placeholder="Ketik lalu Enter..."
+                                    class="flex-1 bg-transparent outline-none text-xs py-1"
+                                    :class="isDark ? 'text-white placeholder-gray-600' : 'text-[#21212e] placeholder-gray-400'"
+                                    style="min-width:80px;">
+                            </div>
+
+                            <div class="flex flex-wrap gap-1.5 mt-2" x-show="suggestions.length > 0">
+                                <span class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Saran:</span>
+                                <template x-for="s in suggestions" :key="s">
+                                    <button type="button"
+                                        @click="addSuggestion(s)"
+                                        x-show="!tags.includes(s)"
+                                        class="text-xs px-2 py-0.5 rounded-full border transition-all"
+                                        :class="isDark
+                                            ? 'border-[#3a3a50] text-gray-400 hover:border-orange-500 hover:text-orange-500'
+                                            : 'border-gray-200 text-gray-400 hover:border-orange-500 hover:text-orange-500'">
+                                        + <span x-text="s"></span>
+                                    </button>
+                                </template>
+                            </div>
+
+                            <input type="hidden" name="tags" :value="tags.join(', ')">
+                        </div>
                     </div>
                     <div class="md:col-span-2">
                         <label class="form-label" :class="isDark ? 'text-gray-300' : 'text-[#21212e]'">Deskripsi</label>
@@ -210,6 +257,44 @@ function editPortfolio() {
                 this.isDark = document.documentElement.classList.contains('dark');
             }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
             lucide.createIcons();
+        }
+    }
+}
+
+function tagInput(initial) {
+    return {
+        tags: [],
+        inputVal: '',
+        focused: false,
+        suggestions: ['anime', 'oc', 'fanart', 'illustration', 'character', 'fantasy',
+                      'portrait', 'chibi', 'semi-realis', 'concept art', 'digital art',
+                      'procreate', 'photoshop', 'clip studio', 'original', 'commission'],
+
+        init() {
+            if (initial && initial.trim() !== '') {
+                this.tags = initial.split(',')
+                    .map(t => t.trim())
+                    .filter(t => t !== '');
+            }
+        },
+
+        addTag() {
+            const val = this.inputVal.trim().replace(/,$/, '').toLowerCase();
+            if (val && !this.tags.includes(val) && this.tags.length < 15) {
+                this.tags.push(val);
+            }
+            this.inputVal = '';
+        },
+
+        addSuggestion(tag) {
+            if (!this.tags.includes(tag) && this.tags.length < 15) {
+                this.tags.push(tag);
+            }
+            this.$refs.tagInput.focus();
+        },
+
+        removeTag(index) {
+            if (index >= 0) this.tags.splice(index, 1);
         }
     }
 }
