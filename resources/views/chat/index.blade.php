@@ -414,10 +414,11 @@ html:not(.dark) .bubble-artist {
                     <textarea x-model="msg"
                         @keydown.enter.exact.prevent="send()"
                         @keydown.shift.enter.stop
+                        @input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"
                         placeholder="Ketik pesan... (Enter untuk kirim)"
                         rows="1"
                         class="flex-1 bg-transparent outline-none resize-none text-sm leading-relaxed"
-                        style="max-height:100px;overflow-y:auto;"
+                        style="max-height:200px; overflow-y:auto;"
                         :class="isDark ? 'text-white placeholder-gray-600' : 'text-[#21212e] placeholder-gray-400'"
                     ></textarea>
 
