@@ -17,7 +17,7 @@
     </script>
 
     <style>
-        * { font-family: "Comic Sans MS", "Comic Sans", cursive !important; }
+        * { font-family: "Nunito", sans-serif !important; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #f97316; border-radius: 99px; }
     </style>
