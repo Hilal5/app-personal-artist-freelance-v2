@@ -147,10 +147,11 @@ $messages = DB::table('messages')
             }
         }
 
+        // GANTI bagian validasi + file handling ini
         $request->validate([
             'receiver_id' => 'required|exists:users,id',
             'message'     => 'nullable|string|max:2000',
-            'file'        => 'nullable|file|max:51200|mimes:jpg,jpeg,png,gif,webp,mp4,mov,avi,pdf,zip,psd,ai,sketch',
+            'file'        => 'nullable|file|max:51200',  // hapus mimes — validasi manual di bawah
         ]);
 
         $filePath = null;
@@ -158,9 +159,35 @@ $messages = DB::table('messages')
         $fileName = null;
 
         if ($request->hasFile('file')) {
-            $file     = $request->file('file');
-            $fileName = $file->getClientOriginalName();
-            $fileType = $file->getMimeType();
+            $file      = $request->file('file');
+            $fileName  = $file->getClientOriginalName();
+            $ext       = strtolower($file->getClientOriginalExtension());
+
+            // Allowed extensions
+            $allowed = ['jpg','jpeg','png','gif','webp','mp4','mov','avi','pdf','zip','psd','ai','sketch','fig'];
+            if (!in_array($ext, $allowed)) {
+                return response()->json(['error' => 'Tipe file tidak diizinkan'], 422);
+            }
+
+            // Force file_type yang benar berdasarkan ekstensi
+            $mimeMap = [
+                'jpg'    => 'image/jpeg',
+                'jpeg'   => 'image/jpeg',
+                'png'    => 'image/png',
+                'gif'    => 'image/gif',
+                'webp'   => 'image/webp',
+                'mp4'    => 'video/mp4',
+                'mov'    => 'video/quicktime',
+                'avi'    => 'video/x-msvideo',
+                'pdf'    => 'application/pdf',
+                'zip'    => 'application/zip',
+                'psd'    => 'application/psd',
+                'ai'     => 'application/ai',
+                'sketch' => 'application/sketch',
+                'fig'    => 'application/fig',
+            ];
+
+            $fileType = $mimeMap[$ext] ?? $file->getMimeType();
             $filePath = $file->store('chat-files', 'public');
         }
 

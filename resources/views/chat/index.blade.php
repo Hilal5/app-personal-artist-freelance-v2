@@ -317,34 +317,55 @@ html:not(.dark) .bubble-artist {
         </div>
 
         {{-- Attachment preview --}}
-        <div x-show="files.length > 0" class="px-4">
-            <div class="flex flex-wrap gap-2 py-2 border-t" :class="isDark ? 'border-[#3a3a50]' : 'border-gray-100'">
-                <template x-for="(f, i) in files" :key="i">
-                    <div class="relative group rounded-xl overflow-hidden border w-16 h-16 shrink-0"
-                        :class="isDark ? 'border-[#3a3a50]' : 'border-gray-200'">
-                        <template x-if="f.type.startsWith('image')">
-                            <img :src="f.preview" class="w-full h-full object-cover">
-                        </template>
-                        <template x-if="f.type.startsWith('video')">
-                            <div class="w-full h-full bg-gray-800 flex items-center justify-center">
-                                <i data-lucide="film" class="w-5 h-5 text-white"></i>
-                            </div>
-                        </template>
-                        <template x-if="!f.type.startsWith('image') && !f.type.startsWith('video')">
-                            <div class="w-full h-full flex items-center justify-center"
-                                :class="isDark ? 'bg-[#21212e]' : 'bg-gray-100'">
-                                <i data-lucide="file" class="w-5 h-5 text-orange-500"></i>
-                            </div>
-                        </template>
-                        <div class="absolute bottom-0 left-0 right-0 px-1 pb-0.5 text-center"
-                            style="font-size:9px;background:rgba(0,0,0,0.5);color:white;"
-                            x-text="f.name.length > 8 ? f.name.substring(0,8)+'...' : f.name"></div>
-                        <button @click="files.splice(i,1)"
-                            class="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500 text-white rounded-full text-xs leading-none opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">×</button>
+        {{-- Attachment preview --}}
+<div x-show="files.length > 0" class="px-4">
+    <div class="flex flex-wrap gap-2 py-2 border-t" :class="isDark ? 'border-[#3a3a50]' : 'border-gray-100'">
+        <template x-for="(f, i) in files" :key="i">
+            <div class="relative group rounded-xl overflow-hidden border shrink-0"
+                :class="[
+                    f.type.startsWith('image') || f.type.startsWith('video') ? 'w-16 h-16' : 'w-auto h-auto px-3 py-2',
+                    isDark ? 'border-[#3a3a50]' : 'border-gray-200'
+                ]">
+
+                {{-- Image preview --}}
+                <template x-if="f.type.startsWith('image')">
+                    <img :src="f.preview" class="w-full h-full object-cover">
+                </template>
+
+                {{-- Video preview --}}
+                <template x-if="f.type.startsWith('video')">
+                    <div class="w-full h-full bg-gray-800 flex items-center justify-center">
+                        <i data-lucide="film" class="w-5 h-5 text-white"></i>
                     </div>
                 </template>
+
+                {{-- File lain: PSD, PDF, ZIP, dll — tampilkan card nama file --}}
+                <template x-if="!f.type.startsWith('image') && !f.type.startsWith('video')">
+                    <div class="flex items-center gap-2 min-w-0"
+                        :class="isDark ? 'bg-[#21212e]' : 'bg-gray-50'"
+                        style="padding:2px 0;">
+                        {{-- Icon box dengan warna sesuai ekstensi --}}
+                        <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                            :style="getExtStyle(f.name)">
+                            <span class="text-xs font-black" x-text="getExt(f.name)"></span>
+                        </div>
+                        {{-- Nama file + download hint --}}
+                        <div class="min-w-0">
+                            <p class="text-xs font-bold truncate max-w-[120px]"
+                                :class="isDark ? 'text-white' : 'text-[#21212e]'"
+                                x-text="f.name"></p>
+                            <p class="text-xs" style="color:#9ca3af;">Siap dikirim</p>
+                        </div>
+                    </div>
+                </template>
+
+                {{-- Tombol hapus --}}
+                <button @click="files.splice(i,1)"
+                    class="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500 text-white rounded-full text-xs leading-none opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">×</button>
             </div>
-        </div>
+        </template>
+    </div>
+</div>
 
         {{-- Input --}}
         @if($activeContact)
@@ -469,18 +490,57 @@ function buildMsgHtml(m, isDark) {
     const avatar = m.mine ? myAvatar : theirAvatar;
 
     let content = '';
-    if (m.file_path) {
-        if (m.file_type && m.file_type.startsWith('image')) {
-            content += `<img src="${m.file_path}" class="max-w-xs rounded-xl object-cover max-h-48 mb-1 cursor-pointer" onclick="window.open(this.src)">`;
-        } else if (m.file_type && m.file_type.startsWith('video')) {
-            content += `<video src="${m.file_path}" controls class="max-w-xs rounded-xl max-h-48 mb-1"></video>`;
-        } else {
-            content += `<a href="${m.file_path}" target="_blank" class="file-badge mb-1">
-                <i data-lucide="file" style="width:14px;height:14px;flex-shrink:0;"></i>
-                <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${m.file_name ?? 'File'}</span>
-            </a>`;
-        }
+if (m.file_path) {
+    const ext    = m.file_name ? m.file_name.split('.').pop().toUpperCase() : '';
+    const isPsd  = ['PSD', 'AI', 'SKETCH', 'FIG'].includes(ext);
+    const isImage = m.file_type && m.file_type.startsWith('image/');
+    const isVideo = m.file_type && m.file_type.startsWith('video/');
+
+    if (isImage) {
+        content += `<img src="${m.file_path}"
+            class="max-w-xs rounded-xl object-cover max-h-48 mb-1 cursor-pointer"
+            onclick="window.open(this.src)">`;
+
+    } else if (isVideo) {
+        content += `<video src="${m.file_path}"
+            class="rounded-xl mb-1"
+            style="display:block;max-width:220px;max-height:180px;"
+            preload="metadata"
+            onloadedmetadata="this.currentTime=1"
+            controls></video>`;
+
+    } else if (isPsd) {
+        const extColors = { PSD: '#31a8ff', AI: '#ff9a00', SKETCH: '#f7b500', FIG: '#a259ff' };
+        const color = extColors[ext] || '#f97316';
+        content += `<a href="${m.file_path}" target="_blank" class="mb-1"
+            style="display:inline-flex;align-items:center;gap:12px;padding:12px 16px;border-radius:14px;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.08);text-decoration:none;min-width:180px;max-width:240px;">
+            <div style="width:44px;height:44px;border-radius:10px;background:${color}20;border:2px solid ${color}40;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <span style="font-size:11px;font-weight:900;color:${color};">${ext}</span>
+            </div>
+            <div style="min-width:0;flex:1;">
+                <div style="font-size:12px;font-weight:700;color:#f97316;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${m.file_name}</div>
+                <div style="font-size:10px;color:#9ca3af;margin-top:2px;display:flex;align-items:center;gap:4px;">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Klik untuk download
+                </div>
+            </div>
+        </a>`;
+
+    } else {
+        const isPdf = ext === 'PDF';
+        const isZip = ['ZIP', 'RAR', '7Z'].includes(ext);
+        const fileColor = isPdf ? '#ef4444' : isZip ? '#f97316' : '#9ca3af';
+        const fileIcon = isPdf
+            ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${fileColor}" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`
+            : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${fileColor}" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>`;
+
+        content += `<a href="${m.file_path}" target="_blank"
+            style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:10px;border:1px solid rgba(249,115,22,0.3);background:rgba(249,115,22,0.1);color:#f97316;text-decoration:none;max-width:220px;margin-bottom:4px;">
+            ${fileIcon}
+            <span style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${m.file_name ?? 'File'}</span>
+        </a>`;
     }
+}
     if (m.message) {
 // HAPUS isDark dari sini — biarkan CSS yang handle
 const bubbleClass = m.mine
@@ -544,6 +604,23 @@ function chatApp() {
             e.target.value = '';
             this.$nextTick(() => lucide.createIcons());
         },
+
+        getExt(filename) {
+    return filename ? filename.split('.').pop().toUpperCase().substring(0, 4) : 'FILE';
+},
+
+getExtStyle(filename) {
+    const ext = filename ? filename.split('.').pop().toUpperCase() : '';
+    const map = {
+        PSD: 'background:#31a8ff20;color:#31a8ff;border:1.5px solid #31a8ff40;',
+        AI:  'background:#ff9a0020;color:#ff9a00;border:1.5px solid #ff9a0040;',
+        PDF: 'background:#ef444420;color:#ef4444;border:1.5px solid #ef444440;',
+        ZIP: 'background:#f9731620;color:#f97316;border:1.5px solid #f9731640;',
+        FIG: 'background:#a259ff20;color:#a259ff;border:1.5px solid #a259ff40;',
+        SKETCH: 'background:#f7b50020;color:#f7b500;border:1.5px solid #f7b50040;',
+    };
+    return map[ext] || 'background:rgba(249,115,22,0.12);color:#f97316;border:1.5px solid rgba(249,115,22,0.3);';
+},
 
         async send() {
             if (this.sending) return;
