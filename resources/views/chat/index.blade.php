@@ -9,6 +9,15 @@
     color: #ffffff;
 }
 
+.bubble-mine, .bubble-artist {
+    display: inline-block;
+    width: fit-content;
+    max-width: 100%;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+}
+
 /* Light mode bubble text */
 html:not(.dark) .bubble-mine,
 html:not(.dark) .bubble-artist {
@@ -267,7 +276,7 @@ html:not(.dark) .bubble-artist {
                     <img src="https://ui-avatars.com/api/?name={{ urlencode($mine ? session('user_name') : $activeContact->name) }}&background={{ $mine ? '7c3aed' : 'f97316' }}&color=fff"
                         class="w-8 h-8 rounded-full object-cover shrink-0">
 
-                    <div class="max-w-xs lg:max-w-md flex flex-col {{ $mine ? 'items-end' : 'items-start' }}">
+                    <div class="flex flex-col {{ $mine ? 'items-end' : 'items-start' }}" style="max-width:min(320px,75%)">
                         @if($m->file_path)
                         @php $url = Storage::url($m->file_path); @endphp
                             @if(str_contains($m->file_type ?? '', 'image'))
@@ -282,12 +291,10 @@ html:not(.dark) .bubble-artist {
                             @endif
                         @endif
 
-                        @if($m->message)
-                        <div class="px-4 py-2.5 text-sm {{ $mine ? 'bubble-mine' : 'bubble-artist' }}"
-    :class="isDark ? 'text-white' : 'text-[#21212e]'">
-                            {{ $m->message }}
-                        </div>
-                        @endif
+@if($m->message)
+<div class="px-3 py-2 text-sm {{ $mine ? 'bubble-mine' : 'bubble-artist' }}"
+    :class="isDark ? 'text-white' : 'text-[#21212e]'">{{ trim($m->message) }}</div>
+@endif
 
                         <span class="text-xs mt-1 px-1" :class="isDark ? 'text-gray-600' : 'text-gray-400'">
                             {{ \Carbon\Carbon::parse($m->created_at)->format('H:i') }}
@@ -411,16 +418,16 @@ html:not(.dark) .bubble-artist {
                         </button>
                     </div>
 
-                    <textarea x-model="msg"
-                        @keydown.enter.exact.prevent="send()"
-                        @keydown.shift.enter.stop
-                        @input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"
-                        placeholder="Ketik pesan... (Enter untuk kirim)"
-                        rows="1"
-                        class="flex-1 bg-transparent outline-none resize-none text-sm leading-relaxed"
-                        style="max-height:200px; overflow-y:auto;"
-                        :class="isDark ? 'text-white placeholder-gray-600' : 'text-[#21212e] placeholder-gray-400'"
-                    ></textarea>
+    <textarea x-model="msg"
+        @keydown.enter.exact.prevent="send()"
+        @keydown.shift.enter.stop
+        @input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"
+        placeholder="Ketik pesan... (Enter untuk kirim)"
+        rows="1"
+        class="flex-1 bg-transparent outline-none resize-none text-sm leading-relaxed"
+        style="max-height:200px; overflow-y:auto;"
+        :class="isDark ? 'text-white placeholder-gray-600' : 'text-[#21212e] placeholder-gray-400'"
+    ></textarea>
 
                     <button @click="send()" :disabled="sending"
                         class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all"
@@ -564,7 +571,7 @@ const deleteBtn = (IS_ARTIST || m.mine)
     div.className = `msg-row ${m.mine ? 'mine' : ''}`;
     div.innerHTML = `
         <img src="${avatar}" class="w-8 h-8 rounded-full object-cover" style="flex-shrink:0;">
-        <div class="max-w-xs lg:max-w-md flex flex-col ${m.mine ? 'items-end' : 'items-start'}">
+        <div class="flex flex-col ${m.mine ? 'items-end' : 'items-start'}" style="max-width:min(320px,75%)">
             ${content}
             <span class="text-xs mt-1 px-1" style="${timeColor}">${m.time}</span>
         </div>
