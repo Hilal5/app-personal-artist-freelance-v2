@@ -1,7 +1,7 @@
 # ArtSpace - Personal Artist Freelance Platform
 
 A web-based platform for freelance artists to showcase their work, manage commissions, and interact with clients.
-[LIHAT LIVE WEBNYA](https://app-personal-artist-freelance-v2-production.up.railway.app/profile)
+[LIHAT LIVE WEBNYA](https://ayamgeprek.up.railway.app/profile)
 
 ## Tech Stack
 
