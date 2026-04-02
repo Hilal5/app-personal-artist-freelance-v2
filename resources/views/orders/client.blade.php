@@ -47,6 +47,7 @@
 .dot-pending { background: #2a2a3d; border-color: #4b5563; color: #4b5563; }
     .dot-done    { background: #22c55e; border-color: #22c55e; color: white; }
     .dot-current { background: #f97316; border-color: #f97316; color: white; }
+    html:not(.dark) .dot-pending { background: #ffffff; }
     /* .dot-pending { background: transparent; border-color: #4b5563; color: #4b5563; } */
 
     .form-input {
