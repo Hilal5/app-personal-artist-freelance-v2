@@ -72,13 +72,19 @@
                     </p>
                     <div class="flex justify-center gap-2">
                         @for($i = 1; $i <= 5; $i++)
-                        <button type="button" @click="setRating({{ $i }})"
-                            class="star-btn">
-                            <i data-lucide="star"
-                                :style="rating >= {{ $i }} ? 'width:36px;height:36px;color:#f97316;fill:#f97316;' : 'width:36px;height:36px;color:#4b5563;'"
-                                @mouseenter="hoverRating = {{ $i }}"
-                                @mouseleave="hoverRating = 0">
-                            </i>
+                        <button type="button"
+                            @click="setRating({{ $i }})"
+                            @mouseenter="hoverRating = {{ $i }}"
+                            @mouseleave="hoverRating = 0"
+                            class="star-btn"
+                            style="background:none;border:none;padding:4px;line-height:1;">
+                            <span
+                                style="font-size:36px;line-height:1;transition:color 0.15s;"
+                                :style="(hoverRating || rating) >= {{ $i }}
+                                    ? 'color:#f97316;'
+                                    : 'color:#4b5563;'">
+                                ★
+                            </span>
                         </button>
                         @endfor
                     </div>

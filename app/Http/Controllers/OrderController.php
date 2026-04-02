@@ -231,9 +231,9 @@ class OrderController extends Controller
             return response()->json(['error' => 'Order tidak ditemukan'], 404);
         }
 
-        if (!in_array($order->status, ['pending', 'confirmed'])) {
-            return response()->json(['error' => 'Order tidak bisa dibatalkan'], 422);
-        }
+    if ($order->status !== 'pending') {
+        return response()->json(['error' => 'Order tidak bisa dibatalkan'], 422);
+    }
 
         DB::table('orders')->where('id', $id)->update([
             'status'        => 'cancelled',

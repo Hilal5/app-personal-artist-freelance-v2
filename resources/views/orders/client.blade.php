@@ -266,7 +266,7 @@
                         <i data-lucide="message-circle" class="w-3.5 h-3.5"></i> Chat Artist
                     </a>
 
-                    @if(in_array($o->status, ['pending', 'confirmed']))
+                    @if($o->status === 'pending')
                     <button onclick="openCancelModal({{ $o->id }})"
                         class="action-btn flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg transition-all"
                         style="background:rgba(239,68,68,0.1);color:#ef4444;">
