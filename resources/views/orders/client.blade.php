@@ -38,15 +38,16 @@
         background: #4b5563;
         opacity: 1;
     }
-    .timeline-dot {
-        width: 28px; height: 28px; border-radius: 99px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 0.65rem; font-weight: 800; z-index: 1;
-        border: 2px solid;
-    }
+.timeline-dot {
+    width: 28px; height: 28px; border-radius: 99px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.65rem; font-weight: 800; z-index: 2;
+    border: 2px solid; position: relative;
+}
+.dot-pending { background: #2a2a3d; border-color: #4b5563; color: #4b5563; }
     .dot-done    { background: #22c55e; border-color: #22c55e; color: white; }
     .dot-current { background: #f97316; border-color: #f97316; color: white; }
-    .dot-pending { background: transparent; border-color: #4b5563; color: #4b5563; }
+    /* .dot-pending { background: transparent; border-color: #4b5563; color: #4b5563; } */
 
     .form-input {
         width: 100%; padding: 10px 14px; border-radius: 12px;
