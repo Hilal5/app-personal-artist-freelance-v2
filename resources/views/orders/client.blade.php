@@ -35,7 +35,8 @@
     .timeline-step:not(:last-child)::after {
         content: ''; position: absolute;
         top: 14px; left: 50%; width: 100%; height: 2px;
-        background: currentColor; opacity: 0.2;
+        background: #4b5563;
+        opacity: 1;
     }
     .timeline-dot {
         width: 28px; height: 28px; border-radius: 99px;
